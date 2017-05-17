@@ -51,7 +51,7 @@ export default{
             var loginParams = { userName: this.ruleForm2.account, userPass: this.ruleForm2.checkPass };
             $.ajax({
                 type:'GET',
-                url:'http://127.0.0.1:3000/login',
+                url:'http://127.0.0.1:3000/user/login',
                 data:loginParams,
                 dataType:'json',
                 success:function(data){
@@ -62,8 +62,16 @@ export default{
                         type: 'error'
                         });
                     }else{
-                    console.log(data.tips[0]._id);
-                    localStorage.setItem("id",data.tips[0]._id);
+                    localStorage.setItem("id",data.tips.id);
+                    localStorage.setItem("name",data.tips.name);
+                    _this.$router.push({ path: '/home/admin' })
+                    _this.$notify.success({
+                      title: data.tips.name+'，你好',
+                      message: '能源吃货欢迎你的到来',
+                      type:'success',
+                      duration:3000,
+                      offset:300
+                    });
                     }
                 },
                 error:function(){

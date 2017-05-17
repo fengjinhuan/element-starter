@@ -5,6 +5,8 @@ import Add from '../components/Add.vue'
 import Index from '../views/Index.vue'
 import Login from '../views/user/Login.vue'
 import Register from '../views/user/Register.vue'
+import Home from '../views/Home.vue'
+import Admin from '../views/home/Admin.vue'
 Vue.use(Router)
 export default new Router({
   routes: [
@@ -12,10 +14,6 @@ export default new Router({
       path: '/',
       name: 'Index',
       component:Index,
-      // children:[
-      //   {path:'/login',component:Login,name:'aa'},
-      //   {path:'/register',component:Register}
-      // ]
     },
     {
       path: '/login',
@@ -26,6 +24,14 @@ export default new Router({
       path: '/register',
       name: '',
       component:Register,
+    },
+    {
+      path: '/home',
+      name: 'home',
+      component:Home,
+      children:[
+        {path:'/home/admin',name:'HomeAdmin',component:Admin}
+      ]
     }
   ]
 })

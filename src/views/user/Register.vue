@@ -11,6 +11,16 @@
             <el-form-item prop="checkPass">
                 <el-input type="password" v-model="ruleForm2.checkPass" auto-complete="off" placeholder="确认密码"></el-input>
             </el-form-item>
+            <el-form-item prop="site">
+                <el-input type="text" v-model="ruleForm2.site" auto-complete="off" placeholder="店铺名称" @change="siteChange(ruleForm2.site)"></el-input>
+            </el-form-item>
+            <el-form-item prop="type">
+                    <el-radio-group v-model="ruleForm2.type">
+                        <el-radio class="radio" :label="0">学校餐厅</el-radio>
+                        <el-radio class="radio" :label="1">后门餐饮</el-radio>
+                        <el-radio class="radio" :label="2">宿舍零食</el-radio>
+                    </el-radio-group>
+                </el-form-item>
             <el-form-item style="width:100%;">
                 <el-button type="primary" style="width:100%;" @click.native.prevent="handleSubmit2" :loading="logining">注册</el-button>
                 <!--<el-button @click.native.prevent="handleReset2">重置</el-button>-->
@@ -43,6 +53,27 @@ export default{
           callback();
         }
       };
+      var validateType=(rule,value,callback)=>{
+        if (value === '') {
+          callback(new Error('请选择店铺信息'));
+        } 
+        callback();
+      };
+      var validateSite=(rule,value,callback)=>{
+        if(value==''){
+            callback(new Error('请输入店铺名'));
+        }else if(/[\x00-\x2F]|[\x3A-\x40]|[\x5B-\x60]|[\x7B-\xFF]/.test(value)){
+            callback(new Error('店铺名不得含有特殊符号！'))
+        }else if(value.length<2){
+            callback(new Error('店铺名不得少于2位！'))
+        }else if(value.length>7){
+            callback(new Error('店铺名不得大于7位！'))
+        }else if(this.changeSiteFlag==false){
+            callback(new Error('店铺名已存在！'))
+        }else{
+            callback()
+        }
+      };
       var validatePass = (rule, value, callback) => {
         if (value === '') {
           callback(new Error('请输入密码'));
@@ -54,12 +85,16 @@ export default{
         }
       };
       return {
+        site:['学校餐厅','后门餐饮','宿舍零食'],
         logining: false,
         changeNameFlag:false,
+        changeSiteFlag:false,
         ruleForm2: {
           account: '',
           checkPass:'',
-          pass:''
+          pass:'',
+          type:'',
+          site:''
         },
         rules2: {
           account: [
@@ -73,11 +108,20 @@ export default{
           checkPass: [
             { validator: validatePass2, trigger: 'blur' },
             //{ validator: validaePass2 }
+          ],
+          type: [
+            { validator: validateType, trigger: 'blur' },
+            //{ validator: validaePass2 }
+          ],
+          site: [
+            { validator: validateSite, trigger: 'blur' },
+            //{ validator: validaePass2 }
           ]
         },
       };
     },
     methods: {
+        // 账号监测
         nameChange(value){
             var that=this;
             if(value.length>5){
@@ -86,12 +130,38 @@ export default{
                 };
                     $.ajax({
                         type:'GET',
-                        url:'http://127.0.0.1:3000/registerFlag',
+                        url:'http://127.0.0.1:3000/user/registerFlag',
                         data:userName,
                         dataType:'json',
                         success:function(data){
                             that.changeNameFlag=data.tips;
-                            console.log(that.changeNameFlag)
+                            
+                        },
+                        error:function(){
+                            console.log('err')
+                        }
+                    })
+            }
+           
+            
+       
+            
+        },
+        // 店铺监测
+        siteChange(value){
+            var that=this;
+            if(value.length>=2){
+                var userName={
+                    userName:value
+                };
+                    $.ajax({
+                        type:'GET',
+                        url:'http://127.0.0.1:3000/user/siteFlag',
+                        data:userName,
+                        dataType:'json',
+                        success:function(data){
+                            that.changeSiteFlag=data.tips;
+                            
                         },
                         error:function(){
                             console.log('err')
@@ -113,15 +183,22 @@ export default{
             //_this.$router.replace('/table');
             this.logining = true;
             //NProgress.start();
-            var registerParams = { userName: this.ruleForm2.account, userPass: this.ruleForm2.checkPass };
-            console.log(registerParams)
+            var registerParams = { userName: this.ruleForm2.account, userPass: this.ruleForm2.checkPass ,type:this.site[this.ruleForm2.type],site:this.ruleForm2.site};
+            
             $.ajax({
                 type:'GET',
-                url:'http://127.0.0.1:3000/register',
+                url:'http://127.0.0.1:3000/user/register',
                 data:registerParams,
                 dataType:'json',
                 success:function(data){
-                    console.log(data.tips)
+                    _this.$router.push({ path: '/login' })
+                     _this.$notify.success({
+                      title: '注册成功',
+                      message: '你好,请登录',
+                      type:'success',
+                      duration:3000,
+                      offset:300
+                    });
                 },
                 error:function(){
                     console.log('err')
